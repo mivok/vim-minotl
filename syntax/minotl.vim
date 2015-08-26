@@ -22,9 +22,9 @@ call s:HighlightIndent(5)
 
 hi def link level1 Statement
 hi def link level2 Identifier
-hi def link level3 Special
+hi def link level3 Preproc
 hi def link level4 Constant
-hi def link level5 Keyword
+hi def link level5 Type
 
 hi def link otlComment Comment
 
