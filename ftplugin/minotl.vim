@@ -13,7 +13,7 @@ setlocal textwidth=0
 setlocal breakindent " Needs vim 7.4.354 or higher
 setlocal linebreak
 "set breakindentopt=min:20,shift:0,sbr
-"set showbreak==
+set showbreak=\|\ 
 
 "" Folding/indentation
 
