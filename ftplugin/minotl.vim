@@ -33,7 +33,7 @@ endfunction
 
 setlocal foldmethod=expr
 setlocal foldexpr=GetOutlineFold(v:lnum)
-setlocal foldtext=getline(v:foldstart).\"...\"
+setlocal foldtext=getline(v:foldstart)[:winwidth(0)-5].\"...\"
 setlocal fillchars=fold:\ 
 setlocal autoindent
 setlocal foldcolumn=1
