@@ -31,9 +31,17 @@ function! GetOutlineFold(line)
     end
 endfunction
 
+function! GetFoldText()
+    " Sets the fold text to a full line of text plus '...'
+    " Works out the visible part of the window for the width of the line
+    let linewidth = winwidth(0) - &foldcolumn
+        \- (&number || &relativenumber ? &numberwidth : 0)
+    return getline(v:foldstart)[:linewidth-4]."..."
+endfunction
+
 setlocal foldmethod=expr
 setlocal foldexpr=GetOutlineFold(v:lnum)
-setlocal foldtext=getline(v:foldstart)[:winwidth(0)-5].\"...\"
+setlocal foldtext=GetFoldText()
 setlocal fillchars=fold:\ 
 setlocal autoindent
 setlocal foldcolumn=1
