@@ -71,3 +71,11 @@ nnoremap <buffer> <silent> { :call search('^'. matchstr(getline('.'),
     \'\(^\s*\)') . '\%<' . line('.') . 'l\S', 'be')<CR>
 nnoremap <buffer> <silent> } :call search('^'. matchstr(getline('.'),
     \'\(^\s*\)') . '\%>' . line('.') . 'l\S', 'e')<CR>
+
+" Don't close folds when inserting nested text right after a title
+" (Taken From
+" http://vim.wikia.com/wiki/Keep_folds_closed_while_inserting_text)
+autocmd InsertEnter * if !exists('w:last_fdm') |
+    \ let w:last_fdm=&foldmethod | setlocal foldmethod=manual | endif
+autocmd InsertLeave,WinLeave * if exists('w:last_fdm') |
+    \ let &l:foldmethod=w:last_fdm | unlet w:last_fdm | foldopen | endif
