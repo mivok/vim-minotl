@@ -61,8 +61,13 @@ map <buffer> <LocalLeader>9 :set foldlevel=9<CR>
 " Some other mappings
 "" TODO - do we actually want tab to indent/unindent?
 "" It doesn't work quite as expected when folded
-map <buffer> <Tab> >>
-map <buffer> <S-Tab> <<
+nnoremap <buffer> <Tab> >>
+nnoremap <buffer> <S-Tab> <<
 " From TVO - it seems like a good idea
-map <buffer> = zo
-map <buffer> - zc
+nnoremap <buffer> = zo
+nnoremap <buffer> - zc
+" Jump to next/previous entry at the same level as the current one
+nnoremap <buffer> <silent> { :call search('^'. matchstr(getline('.'),
+    \'\(^\s*\)') . '\%<' . line('.') . 'l\S', 'be')<CR>
+nnoremap <buffer> <silent> } :call search('^'. matchstr(getline('.'),
+    \'\(^\s*\)') . '\%>' . line('.') . 'l\S', 'e')<CR>
