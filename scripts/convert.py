@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import json
 import re
 import sys
+import argparse
 
 def parse_outline(lines, curr_line = 0, curr_indent = 0):
     """Reads in an outline file and generates an internal data structure of
@@ -30,41 +33,91 @@ def parse_outline(lines, curr_line = 0, curr_indent = 0):
             return curr_line, outline
     return curr_line, outline
 
-def pretty_print_outline(outline, indent = 4, curr_indent = 0):
-    """Takes an internal outline data structure and prints it back out"""
+def convert_to_minotl(outline, indent = 4, curr_indent = 0):
+    """Converts to a standard minotl format"""
+    lines = []
     for i in outline:
         if type(i) == str:
-            print "%s%s" % (curr_indent * " ", i)
+            lines.append("%s%s" % (curr_indent * " ", i))
         else:
-            print "%s%s" % (curr_indent * " ", i[0])
-            pretty_print_outline(i[1], indent, indent + curr_indent)
+            lines.append("%s%s" % (curr_indent * " ", i[0]))
+            lines.append(convert_to_minotl(i[1], indent, indent +
+                                           curr_indent))
+    return '\n'.join(lines)
 
-def print_json_outline(outline, indent = 4):
-    # Prints the outline in json format
-    print json.dumps(outline, indent=4)
+def convert_to_json(outline, indent = 4):
+    """Converts the outline to json"""
+    return json.dumps(outline, indent=4)
 
-def print_html_outline(outline, indent = 4, curr_indent = 0):
-    """Prints an outline in html UL format"""
-    print "%s<ul>" % (curr_indent * " ")
+def convert_to_html(outline, indent = 4, curr_indent = 0):
+    """Converts the outline to html UL format"""
+    lines = []
+    lines.append("%s<ul>" % (curr_indent * " "))
     for i in outline:
         if type(i) == str:
-            print "%s<li>%s</li>" % (curr_indent * " ", i)
+            lines.append("%s<li>%s</li>" % ((curr_indent + indent)* " ", i))
         else:
-            print "%s<li>%s" % (curr_indent * " ", i[0])
-            print_html_outline(i[1], indent, indent + curr_indent)
-            print "%s</li>" % (curr_indent * " ")
-    print "%s</ul>" % (curr_indent * " ")
+            lines.append("%s<li>%s" % ((curr_indent + indent) * " ", i[0]))
+            lines.append(convert_to_html(i[1], indent, indent + curr_indent))
+            lines.append("%s</li>" % ((curr_indent + indent) * " "))
+    lines.append("%s</ul>" % (curr_indent * " "))
+    return '\n'.join(lines)
 
-def print_markdown_outline(outline, indent = 4, curr_indent = 0):
-    """Prints an outline in markdown format"""
+def convert_to_opml(outline, indent = 4, curr_indent = 0):
+    """Converts the outline to OPML"""
+    lines = []
+    lines.append('<?xml version="1.0" encoding="utf-8"?>')
+    lines.append('<opml version="1.0">')
+    lines.append('<head><title>Outline</title></head>')
+    lines.append('<body>')
+    lines.append(convert_to_opml_fragment(outline, indent, curr_indent +
+                                          indent))
+    lines.append('</body>')
+    lines.append('</opml>')
+    return '\n'.join(lines)
+
+def convert_to_opml_fragment(outline, indent = 4, curr_indent = 0):
+    """Converts the outline to an OPML fragment"""
+    lines = []
     for i in outline:
         if type(i) == str:
-            print "%s* %s" % (curr_indent * " ", i)
+            lines.append("%s<outline text=\"%s\" />" % (curr_indent * " ", i))
         else:
-            print "%s* %s" % (curr_indent * " ", i[0])
-            print_markdown_outline(i[1], indent, indent + curr_indent)
+            lines.append("%s<outline text=\"%s\">" % (curr_indent * " ", i[0]))
+            lines.append(convert_to_opml_fragment(i[1], indent, indent + curr_indent))
+            lines.append("%s</outline>" % (curr_indent * " "))
+    return '\n'.join(lines)
 
-with open(sys.argv[1]) as fh:
-    lines = fh.read().split('\n')
-    curr_line, outline = parse_outline(lines)
-    print_markdown_outline(outline)
+def convert_to_markdown(outline, indent = 4, curr_indent = 0):
+    """Convert an outline to markdown format"""
+    lines = []
+    for i in outline:
+        if type(i) == str:
+            lines.append("%s* %s" % (curr_indent * " ", i))
+        else:
+            lines.append("%s* %s" % (curr_indent * " ", i[0]))
+            lines.append(convert_to_markdown(i[1], indent, indent +
+                                             curr_indent))
+    return '\n'.join(lines)
+
+if __name__ == '__main__':
+    formats = [i[11:] for i in locals().keys() if i.startswith('convert_to_')]
+    parser = argparse.ArgumentParser(
+        description='Convert a minotl outline to different formats',
+        epilog="Supported formats: %s" % ' '.join(formats))
+    parser.add_argument('--format', default='markdown', help='The format to convert to')
+    parser.add_argument('filename', help='Path to the minotl file')
+    args = parser.parse_args()
+
+
+    try:
+        func = locals()["convert_to_%s" % args.format]
+    except KeyError:
+        print("Unknown format: %s" % args.format)
+        sys.exit(1)
+
+    with open(args.filename) as fh:
+        lines = fh.read().split('\n')
+        _, outline = parse_outline(lines)
+        converted = func(outline)
+        print(converted)
