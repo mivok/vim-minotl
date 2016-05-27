@@ -20,12 +20,14 @@ set showbreak=\|\
 " Indent folding done right
 function! GetOutlineFold(line)
     if getline(a:line) =~? '\v^\s*$'
-        return '-1'
+        return '='
     endif
     let curr_indent = indent(a:line) / &shiftwidth
     let next_indent = indent(a:line + 1) / &shiftwidth
     if next_indent > curr_indent
         return ">" . next_indent
+    elseif curr_indent == 0
+        return ">1"
     else
         return curr_indent
     end
@@ -71,11 +73,3 @@ nnoremap <buffer> <silent> { :call search('^'. matchstr(getline('.'),
     \'\(^\s*\)') . '\%<' . line('.') . 'l\S', 'be')<CR>
 nnoremap <buffer> <silent> } :call search('^'. matchstr(getline('.'),
     \'\(^\s*\)') . '\%>' . line('.') . 'l\S', 'e')<CR>
-
-" Don't close folds when inserting nested text right after a title
-" (Taken From
-" http://vim.wikia.com/wiki/Keep_folds_closed_while_inserting_text)
-autocmd InsertEnter * if !exists('w:last_fdm') |
-    \ let w:last_fdm=&foldmethod | setlocal foldmethod=manual | endif
-autocmd InsertLeave,WinLeave * if exists('w:last_fdm') |
-    \ let &l:foldmethod=w:last_fdm | unlet w:last_fdm | foldopen | endif
